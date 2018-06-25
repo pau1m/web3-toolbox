@@ -28,12 +28,16 @@ exports.deploy = function(contractFile, params, config) {
   // Assign defaults if not exist
   config.gasPrice = ('gasPrice' in config) ?  config.gasPrice : '1000000';
   config.port = ('port' in config) ? config.port : 8545;
+  config.startServer = ('startServer' in config) ? config.startServer : true;
 
   if (!fs.existsSync(contractFile)) {
     throw Error("Can not read the contract file.");
   }
 
-  server.listen(config.port);
+  if (config.startServer === true){
+    server.listen(config.port);
+  }
+
   let web3URL = 'http://localhost:' + config.port;
   let web3 = new Web3(new Web3.providers.HttpProvider(web3URL));
   console.log('Ganache runs on : %s', web3URL);
