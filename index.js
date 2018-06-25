@@ -1,12 +1,16 @@
 const deployer = require('./deployer');
 
-exports.deploy = function(contractFile, gasPrice, port = 8545) {
+/**
+ * @param contractFile a solidity contract
+ * @param params an array of parameters to pass to contract
+ * @param config web3 default configuration
+ */
+exports.deploy = function(contractFile, params = [], config = {}) {
   if (!contractFile) {
     throw 'The contract file must be provided';
   }
 
-
-  return deployer.deploy(port, contractFile, gasPrice);
+  return deployer.deploy(contractFile, params, config);
 }
 
 exports.buildABI = function(contractFile) {

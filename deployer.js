@@ -23,13 +23,18 @@ function solveContract(contractFile) {
 }
 
 
-exports.deploy = function(port, contractFile, gasPrice) {
+exports.deploy = function(contractFile, params, config) {
+
+  // Assign defaults if not exist
+  config.gasPrice = ('gasPrice' in config) ?  config.gasPrice : '1000000';
+  config.port = ('port' in config) ? config.port : 8545;
+
   if (!fs.existsSync(contractFile)) {
     throw Error("Can not read the contract file.");
   }
 
-  server.listen(port);
-  let web3URL = 'http://localhost:' + port;
+  server.listen(config.port);
+  let web3URL = 'http://localhost:' + config.port;
   let web3 = new Web3(new Web3.providers.HttpProvider(web3URL));
   console.log('Ganache runs on : %s', web3URL);
   let eth = web3.eth;
@@ -45,23 +50,29 @@ exports.deploy = function(port, contractFile, gasPrice) {
       let bytecode = contractMeta.bytecode;
       let abi = contractMeta.abi;
 
-      new eth.Contract(abi).deploy({data: bytecode})
+      new eth.Contract(abi).deploy({
+        data: bytecode,
+        arguments: params
+      })
         .estimateGas((error, gasAmount) => {
           if (error) {
             console.error(error);
             reject(error);
           }
 
+          // @todo should use checksummed addresses by default.
+          // @todo make gas amount configrable and / or derive from web3 gas estimate
           let account = accounts[0].toLowerCase();
           let fromJSON = {
             from: account,
             gas: gasAmount,
-            gasPrice: gasPrice ? gasPrice : '30000000000000'
+            gasPrice: config.gasPrice
           };
 
           // // TODO: find a better way to find the estimated gas
           new eth.Contract(abi).deploy({
-            data: bytecode
+            data: bytecode,
+            arguments: params
           }).send(fromJSON, function(error, transactionHash) {
             if (error) {
               console.error(error);
